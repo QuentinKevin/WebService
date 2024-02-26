@@ -1,0 +1,12 @@
+version: '3'
+services:
+  service1:
+    image: webservice-user:latest
+    # Autres configurations pour le service 1
+    ports:
+    - "3001:3001"
+  service2:
+    image: webservice-movie:latest
+    # Autres configurations pour le service 2
+    ports:
+    - "3000:3000"
