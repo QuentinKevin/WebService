@@ -32,7 +32,7 @@ Movie.init({
     date_creation: {
         type: DataTypes.DATE
     },
-    note: {
+    rate: {
         type: DataTypes.INTEGER
     },
     category: {
