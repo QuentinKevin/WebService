@@ -12,6 +12,8 @@ const sequelize = new Sequelize('sabergrou_webservice', 'sabergrou', 'WebS3rvice
     dialect: 'mysql',
 });
 
+//--------Movie-MODELS--------
+
 class Movie extends Model {}
 
 Movie.init({
@@ -41,6 +43,40 @@ Movie.init({
     modelName: 'Movie',
     tableName: 'movies'
 });
+
+//--------USERS-MODELS--------
+
+class Users extends Model {}
+
+Users.init({
+    id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true
+    },
+    username: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    email: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    password: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    role: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    }
+}, {
+    sequelize,
+    modelName: 'Users',
+    tableName: 'users'
+});
+
+//--------MODEL-SYNC--------
 
 // Synchronisation du modèle avec la base de données
 sequelize.sync()
