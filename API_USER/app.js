@@ -94,51 +94,6 @@ app.get('/renew', (req, res) => {
 
 });
 
-app.get('/editor', (req, res) => {
-    const auth = req.header('Authorization');
-    const isBasicAuth = auth && auth.startsWith('Basic ');
-    if (!isBasicAuth) {
-        res.status(401).send('Unauthorized');
-        return;
-    }
-    const decodedValue = JSON.parse(Buffer.from(req.query.token.split('.')[1], 'base64').toString('ascii'));
-    let valideUser = null;
-    for (const user of Users) {
-        if (user.local_user === decodedValue.local_user || decodedValue.local_user === 'admin') {
-            valideUser = user;
-        }
-    }
-    if (valideUser != null) {
-        if (req.query.user !== undefined){
-            for (const user of Users) {
-                if (user.local_user === decodedValue.local_user) {
-                    user.local_user = req.query.user;
-                    Users.forEach(function (item, index) {
-                        fs.writeFile('users.json', JSON.stringify(Users), function (err) {
-                            if (err) return console.log(err);
-                        });
-                    });
-                }
-            }
-        }
-        if (req.query.password !== undefined) {
-            for (const user of Users) {
-                if (user.local_user === decodedValue.local_user) {
-                    user.local_password = Crypto.createHash('SHA256').update(req.query.password).digest('hex');
-                    Users.forEach(function (item, index) {
-                        fs.writeFile('users.json', JSON.stringify(Users), function (err) {
-                            if (err) return console.log(err);
-                        });
-                    });
-                }
-            }
-        }
-        res.status(200).send('Access Granted');
-    } else {
-        res.status(401).send('Unauthorized');
-    }
-});
-
 //--------SERVER-LISTEN--------
 
 app.listen(port, () => {

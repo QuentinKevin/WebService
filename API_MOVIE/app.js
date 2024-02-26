@@ -37,6 +37,12 @@ Movie.init({
     },
     category: {
         type: DataTypes.STRING
+    },
+    duration: {
+        type: DataTypes.INTEGER
+    },
+   hasReservationAvailable: {
+        type: DataTypes.BOOLEAN
     }
 }, {
     sequelize,
