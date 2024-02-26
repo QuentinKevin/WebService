@@ -1,0 +1,24 @@
+{
+  "name": "webservice",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/QuentinKevin/WebService.git"
+  },
+  "author": "Quentin Siraud & Kevin Locatelli",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/QuentinKevin/WebService/issues"
+  },
+  "homepage": "https://github.com/QuentinKevin/WebService#readme",
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "express": "^4.18.2",
+    "sequelize": "^6.37.1"
+  }
+}
