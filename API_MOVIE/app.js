@@ -3,6 +3,9 @@ const bodyParser = require('body-parser');
 const app = express();
 const port = 3003;
 const { Sequelize, DataTypes, Model } = require('sequelize');
+const { v4 } = require('uuid');
+const uuidv4 = v4;
+
 
 app.use(bodyParser.json());
 
@@ -17,14 +20,11 @@ const sequelize = new Sequelize('sabergrou_webservice', 'sabergrou', 'WebS3rvice
 class Movie extends Model {}
 
 Movie.init({
-    id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true
+    uid: {
+        type: DataTypes.STRING
     },
     name: {
-        type: DataTypes.STRING,
-        allowNull: false
+        type: DataTypes.STRING
     },
     description: {
         type: DataTypes.STRING
@@ -41,7 +41,7 @@ Movie.init({
     duration: {
         type: DataTypes.INTEGER
     },
-   hasReservationAvailable: {
+    hasReservationAvailable: {
         type: DataTypes.BOOLEAN
     }
 }, {
@@ -63,143 +63,87 @@ sequelize.sync()
 
 //--------MOVIES-ENDPOINTS--------
 
+// Récupération des films
+app.get('/movies', async (req, res) => {
+    let movies = await Movie.findAll();
+
+    res.status(200).json(movies);
+});
+
 // Récupération d'un film par ID
-app.get('/movies/:id', async (req, res) => {
+app.get('/movies/:uid', async (req, res) => {
 
     let movies = await Movie.findAll();
 
-    const movieId = parseInt(req.params.id);
-    const movie = movies.find((m) => m.id === movieId);
+    const movieId = parseInt(req.params.uid);
+    const movie = movies.find((m) => m.uid === movieId);
 
     if (movie) {
-        res.json(movie);
+        res.status(200).json(movie);
     } else {
-        res.status(404).json({ message: 'Movie not found' });
+        res.status(404).json({ message: 'Le film est inconnu' });
     }
 });
 
-// Modification d'un film par ID
-app.put('/movies/:id', async (req, res) => {
-
-    let movies = await Movie.findAll();
-
-    const movieId = parseInt(req.params.id);
-    const index = movies.findIndex((m) => m.id === movieId);
-
-    if (index !== -1) {
-        movies[index] = { ...movies[index], ...req.body };
-        res.json({ message: 'Movie updated successfully' });
-    } else {
-        res.status(404).json({ message: 'Movie not found' });
-    }
-});
-
-// Création d'un nouveau film
+// Création d'un nouveau film ....
 app.post('/movies', async (req, res) => {
     let movies = await Movie.findAll();
 
+    if (!req.body.uid || !req.body.name || !req.body.description || !req.body.rate || !req.body.duration) {
+        return res.status(422).json({ message: 'All fields are required' });
+    }
     const newMovie = req.body;
-    newMovie.id = movies.length + 1;
+    newMovie.date_creation = new Date();
+    newMovie.hasReservationAvailable = true;
+    newMovie.category = 'non défini';
     movies.push(newMovie);
-    res.status(201).json({ message: 'Movie created successfully' });
+    res.status(201).json(newMovie);
+});
+
+// Modification d'un film par ID
+app.put('/movies/:uid', async (req, res) => {
+
+    if (!req.params.uid) {
+        return res.status(422).json({ message: 'Movie ID is required' });
+    }
+
+    let movies = await Movie.findAll();
+    const movieId = parseInt(req.params.uid);
+    const index = movies.findIndex((m) => m.uid === movieId);
+
+    if (index === -1) {
+        return res.status(404).json({ message: 'Movie not found' });
+    }
+
+    if (req.body.name) {
+        movies[index].name = req.body.name;
+    }
+    if (req.body.description) {
+        movies[index].description = req.body.description;
+    }
+    if (req.body.rate) {
+        movies[index].rate = req.body.rate;
+    }
+    if (req.body.duration) {
+        movies[index].duration = req.body.duration;
+    }
+    res.status(200).json(movies[index]);
 });
 
 // Suppression d'un film par ID
-app.delete('/movies/:id', async (req, res) => {
+app.delete('/movies/:uid', async (req, res) => {
+    if (!req.params.uid) {
+        return res.status(404).json({ message: 'Movie ID is required' });
+    }
 
     let movies = await Movie.findAll();
-    const movieId = parseInt(req.params.id);
-    movies = movies.filter((m) => m.id !== movieId);
-    res.json({ message: 'Movie deleted successfully' });
-});
-
-// Gestion des erreurs de validation
-app.use((err, req, res, next) => {
-    if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
-        res.status(422).json({ message: 'Validation error' });
-    }
-});
-
-// Récuperation des films par catégories
-app.get('/movies/category/:category', async (req, res) => {
-    const category = req.params.category;
-
-    try {
-        const movies = await Movie.findAll({
-            where: {
-                category: category,
-            },
-        });
-
-        if (movies.length > 0) {
-            res.json(movies);
-        } else {
-            res.status(404).json({ message: 'No movies found in the specified category' });
-        }
-    } catch (error) {
-        console.error('Error fetching movies by category:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});
-
-// Récupération des films par Nom
-app.get('/movies/namesearch/:name', async (req, res) => {
-    const nameQuery = req.params.name;
-
-    if (!nameQuery) {
-        return res.status(400).json({ message: 'Name parameter is required for search' });
-    }
-
-    try {
-        const movies = await Movie.findAll({
-            where: {
-                name: {
-                    [Sequelize.Op.like]: `%${nameQuery}%`,
-                },
-            },
-        });
-
-        if (movies.length > 0) {
-            res.json(movies);
-        } else {
-            res.status(404).json({ message: 'No movies found with the specified name' });
-        }
-    } catch (error) {
-        console.error('Error fetching movies by name:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});
-
-// Récupération des films par description
-app.get('/movies/descsearch/:description', async (req, res) => {
-    const descriptionQuery = req.params.description;
-
-    if (!descriptionQuery) {
-        return res.status(400).json({ message: 'Description parameter is required for search' });
-    }
-
-    try {
-        const movies = await Movie.findAll({
-            where: {
-                description: {
-                    [Sequelize.Op.like]: `%${descriptionQuery}%`,
-                },
-            },
-        });
-
-        if (movies.length > 0) {
-            res.json(movies);
-        } else {
-            res.status(404).json({ message: 'No movies found with the specified name' });
-        }
-    } catch (error) {
-        console.error('Error fetching movies by name:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
+    const movieId = parseInt(req.params.uid);
+    movies = movies.filter((m) => m.uid !== movieId);
+    res.status(204).json({ message: 'Movie deleted successfully' });
 });
 
 //--------SERVER-LISTEN--------
 
 app.listen(port, () => {
-    console.log(`Server is running on localhost:${port}`);
+    console.log(`Server is running on localhost: ${port}`);
 });
