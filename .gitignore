@@ -41,6 +41,7 @@ build/Release
 # Dependency directories
 API_MOVIE/node_modules/
 API_USER/node_modules/
+API_CINEMA/node_modules/
 jspm_packages/
 
 # Snowpack dependency directory (https://snowpack.dev/)

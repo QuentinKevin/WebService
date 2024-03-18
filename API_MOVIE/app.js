@@ -85,7 +85,7 @@ app.get('/movies/:uid', async (req, res) => {
     }
 });
 
-// Création d'un nouveau film ....
+// Création d'un nouveau film
 app.post('/movies', async (req, res) => {
     let movies = await Movie.findAll();
 
