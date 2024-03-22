@@ -103,25 +103,24 @@ sequelize.sync()
 
 app.get('/cinema', async (req, res) => {
     const cinemas = await Cinema.findAll();
-    res.json(cinemas);
+    res.status(200).json(cinemas);
 });
 
 app.get('/cinema/:uid', async (req, res) => {
-    const cinema = await Cinema.findOne({
-        where: {
-            uid: req.params.uid
+    if (req.params.uid != null) {
+        const cinema = await Cinema.findOne({
+            where: {
+                uid: req.params.uid
+            }
+        });
+        if (cinema != null) {
+            res.status(200).json(cinema);
+        } else {
+            res.status(404).send('Le cinéma est inconnu');
         }
-    });
-    res.json(cinema);
-});
-
-app.get('/cinema/:uid', async (req, res) => {
-    const cinema = await Cinema.findOne({
-        where: {
-            uid: req.params.uid
-        }
-    });
-    res.json(cinema);
+    } else {
+        res.status(422).send('Le contenu de l\'object cinema dans le body est invalide');
+    }
 });
 
 app.post('/cinema', async (req, res) => {
@@ -140,7 +139,11 @@ app.post('/cinema', async (req, res) => {
         });
         cinema.uid = req.query.uid;
     }
-    res.json(cinema);
+    if (cinema != null) {
+        res.status(201).json(cinema);
+    } else {
+        res.status(422).send("Le contenu de l'object cinema dans le body est invalide");
+    }
 });
 
 app.put('/cinema/:uid', async (req, res) => {
@@ -153,7 +156,12 @@ app.put('/cinema/:uid', async (req, res) => {
         cinema.name = req.query.name;
         cinema.save();
     }
-    res.json(cinema);
+    if(cinema != null) {
+        res.status(200).json(cinema);
+    }
+    else {
+        res.status(404).send('Le cinéma est inconnu');
+    }
 });
 
 app.delete('/cinema/:uid', async (req, res) => {
@@ -165,7 +173,11 @@ app.delete('/cinema/:uid', async (req, res) => {
         });
         cinema.destroy();
     }
-    res.json(cinema);
+    if(cinema == null) {
+        res.status(204).json(cinema);
+    } else {
+        res.status(404).send('Le cinéma est inconnu');
+    }
 });
 
 app.get('/cinema/:uid/rooms', async (req, res) => {
@@ -258,6 +270,7 @@ app.post('/cinema/:uid/rooms/:uidd/sceances', async (req, res) => {
             uid: req.params.uidd
         }
     });
+    let sceance
     if (req.query.movie && req.query.date) {
         sceance = Sceance.create({
             uid: uuidv4(),
