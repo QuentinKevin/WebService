@@ -4,7 +4,7 @@ const axios = require('axios');
 const { Sequelize, DataTypes, Model } = require('sequelize');
 
 const app = express();
-const port = 3003;
+const port = 3002;
 const amqp = require('amqplib');
 
 app.use(bodyParser.json());
