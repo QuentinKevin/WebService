@@ -19,4 +19,10 @@ services:
     image: webservice-reservation:latest
     # Autres configurations pour le service 4
     ports:
-    - "3003:3002"
+    - "3002:3002"
+  rabbitmq:
+      image: rabbitmq:3-management
+      ports:
+        - "5672:5672" # Port pour AMQP
+        - "15672:15672" # Port pour l'interface de gestion Web
+      hostname: rabbitmq # Nom d'hôte du conteneur RabbitMQ
