@@ -8,6 +8,7 @@ const port = 3002;
 const amqp = require('amqplib');
 
 app.use(bodyParser.json());
+let reservationSeats = 0;
 
 // Connexion à RabbitMQ
 const rabbitMQUrl = 'amqp://localhost';
@@ -51,6 +52,15 @@ app.post('/movies/:id/reservations', async (req, res) => {
         // Vérification si le film existe dans l'API de films
         const response = await axios.get(`http://localhost:3000/movies/${movieId}`);
         if (response.status === 200) {
+            // Enregistrement des sièges
+                const cinema = await axios.get(`http://localhost:3003/cinema`);
+                let cinemadata = cinema.data[0];
+                const room = await axios.get(`http://localhost:3003/cinema/${cinemadata.uid}/rooms`)
+                const rooms = room.data[0]
+                if (rooms.seats <= reservationSeats) {
+                    return res.send('the rooms is full')
+                }
+            reservationSeats++
             // Enregistrement de la réservation dans la base de données
             const reservation = await Reservation.create({
                 movieId: movieId,
@@ -62,7 +72,7 @@ app.post('/movies/:id/reservations', async (req, res) => {
             // Envoi de la réservation à RabbitMQ
             await sendReservationToQueue({ movieId, reservationData });
 
-            res.status(201).json({ message: 'Reservation created successfully' });
+            res.status(200).json({uid: rooms.uid, rank: reservationSeats, createdAt: rooms.createdAt, updatedAt: rooms.updatedAt, expiresAt: rooms.updatedAt});
         } else {
             res.status(404).json({ message: 'Movie not found' });
         }
@@ -87,6 +97,25 @@ app.post('/reservations/:uid/confirm', async (req, res) => {
             console.log("Reservation confirmed:", reservation);
             
             res.status(200).json({ message: 'Reservation confirmed successfully' });
+        } else {
+            res.status(404).json({ message: 'Reservation not found' });
+        }
+    } catch (error) {
+        console.error("Error confirming reservation:", error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Endpoint pour trouver une reservation
+app.get('/reservations/:uid', async (req, res) => {
+
+    // Enregistrement des sièges
+    const cinema = await axios.get(`http://localhost:3003/cinena/`);
+    const room = await axios.get(`http://localhost:3003/cinema/${req.params.uid}/rooms`)
+
+    try {
+        if (room != null ) {
+            res.status(200).json({uid: req.params.uid, rank: reservationSeats, createdAt: room[1].createdAt, updatedAt: room[1].updatedAt, expiresAt: room[1].updatedAt});
         } else {
             res.status(404).json({ message: 'Reservation not found' });
         }
