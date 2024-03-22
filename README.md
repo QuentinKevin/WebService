@@ -1,5 +1,5 @@
 # Pour installer l'application : 
-#  executé les 4 dockerfile avec les commandes suivantes : 
+  executé les 4 dockerfile avec les commandes suivantes : 
     1. API_CINEMA :
       - docker build -t webservice-cinema .
     2. API_MOVIE :
