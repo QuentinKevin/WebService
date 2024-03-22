@@ -10,3 +10,8 @@ services:
     # Autres configurations pour le service 2
     ports:
     - "3000:3000"
+  service3:
+    image: webservice-cinema:latest
+    # Autres configurations pour le service 3
+    ports:
+    - "3003:3003"
